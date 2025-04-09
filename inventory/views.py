@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.db.models import Q
+from .serializers import RegisterSerializer
 from rest_framework import generics, viewsets, permissions, status, filters
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -11,6 +13,14 @@ from .models import InventoryItem, Category, InventoryChange
 from .serializers import InventoryItemSerializer, CategorySerializer, InventoryChangeSerializer, UserSerializer
 
 # Create your views here.
+
+# Registration view
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+    serializer_class = RegisterSerializer
+
+
 
 # Category API
 class CategoryListCreateView(generics.ListCreateAPIView):
@@ -38,6 +48,11 @@ class InventoryItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = InventoryItem.objects.all()
     serializer_class = InventoryItemSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+    def perform_destroy(self, serializer):
+        serializer.delete()
+
 
     def perform_update(self, serializer):
         # Get the existing item before update
